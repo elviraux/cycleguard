@@ -6,9 +6,11 @@ export const theme = {
     cream: '#F5F1ED',
     white: '#FFFFFF',
     periodPink: '#E8B4B8',
-    fertileGlow: 'rgba(200, 181, 200, 0.3)',
-    glassBg: 'rgba(255, 255, 255, 0.15)',
-    glassBorder: 'rgba(255, 255, 255, 0.3)',
+    fertileGlow: 'rgba(200, 181, 200, 0.35)',
+    // Enhanced glass colors for liquid glass effect
+    glassBg: 'rgba(255, 255, 255, 0.25)',
+    glassBorder: 'rgba(255, 255, 255, 0.5)',
+    glassInner: 'rgba(255, 255, 255, 0.15)',
     text: {
       primary: '#2D2D2D',
       secondary: '#6B4C6B',
@@ -17,6 +19,15 @@ export const theme = {
   },
   gradients: {
     background: ['#F5E6E8', '#E8D5E8', '#D4C5D4'] as const,
+    glass: ['rgba(255, 255, 255, 0.4)', 'rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.05)'] as const,
+    button: ['rgba(107, 76, 107, 0.95)', 'rgba(107, 76, 107, 0.85)'] as const,
+  },
+  // Enhanced blur intensity for liquid glass
+  blur: {
+    light: 40,
+    medium: 60,
+    strong: 80,
+    ultraStrong: 100,
   },
   spacing: {
     xs: 4,

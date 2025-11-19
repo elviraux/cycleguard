@@ -8,12 +8,12 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { theme } from '@/constants/theme';
 import { GlassCard } from '@/components/GlassCard';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { LiquidBackground } from '@/components/LiquidBackground';
 import { storage } from '@/utils/storage';
 
 export default function SetupScreen() {
@@ -51,12 +51,8 @@ export default function SetupScreen() {
   };
 
   return (
-    <LinearGradient
-      colors={theme.gradients.background}
-      style={styles.container}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-    >
+    <View style={styles.container}>
+      <LiquidBackground />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.content}>
           <Text style={styles.title}>Let&apos;s Personalize Your Cycle</Text>
@@ -129,7 +125,7 @@ export default function SetupScreen() {
           />
         </View>
       </ScrollView>
-    </LinearGradient>
+    </View>
   );
 }
 

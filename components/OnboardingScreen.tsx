@@ -1,14 +1,15 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   Dimensions,
   Platform,
+  Animated,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '@/constants/theme';
 import { PrimaryButton } from './PrimaryButton';
+import { LiquidBackground } from './LiquidBackground';
 
 const { width, height } = Dimensions.get('window');
 
@@ -33,14 +34,40 @@ export function OnboardingScreen({
   primaryButton,
   secondaryButton,
 }: OnboardingScreenProps) {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 800,
+        useNativeDriver: true,
+      }),
+      Animated.spring(slideAnim, {
+        toValue: 0,
+        tension: 20,
+        friction: 7,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [fadeAnim, slideAnim]);
+
   return (
-    <LinearGradient
-      colors={theme.gradients.background}
-      style={styles.container}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-    >
-      <View style={styles.content}>
+    <View style={styles.container}>
+      {/* Animated liquid background */}
+      <LiquidBackground />
+
+      {/* Content with fluid animations */}
+      <Animated.View
+        style={[
+          styles.content,
+          {
+            opacity: fadeAnim,
+            transform: [{ translateY: slideAnim }],
+          },
+        ]}
+      >
         <View style={styles.iconContainer}>
           {icon}
         </View>
@@ -71,8 +98,8 @@ export function OnboardingScreen({
         <View style={styles.indicator}>
           <View style={styles.indicatorDot} />
         </View>
-      </View>
-    </LinearGradient>
+      </Animated.View>
+    </View>
   );
 }
 

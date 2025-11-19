@@ -6,7 +6,10 @@ import {
   ViewStyle,
   ActivityIndicator,
   Animated,
+  View,
 } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 import { theme } from '@/constants/theme';
 
 interface PrimaryButtonProps {
@@ -27,23 +30,49 @@ export function PrimaryButton({
   loading,
 }: PrimaryButtonProps) {
   const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const glowAnim = React.useRef(new Animated.Value(0)).current;
 
   const handlePressIn = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 0.95,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 0.95,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glowAnim, {
+        toValue: 1,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   const handlePressOut = () => {
-    Animated.spring(scaleAnim, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+    Animated.parallel([
+      Animated.spring(scaleAnim, {
+        toValue: 1,
+        useNativeDriver: true,
+      }),
+      Animated.timing(glowAnim, {
+        toValue: 0,
+        duration: 200,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
 
   return (
-    <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+    <Animated.View style={[
+      { transform: [{ scale: scaleAnim }] },
+      styles.container,
+    ]}>
+      {/* Light-catching border */}
+      <LinearGradient
+        colors={['rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0.05)']}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+        style={styles.borderGradient}
+      />
+
       <TouchableOpacity
         style={[
           styles.button,
@@ -59,19 +88,34 @@ export function PrimaryButton({
         disabled={disabled || loading}
         activeOpacity={0.8}
       >
-        {loading ? (
-          <ActivityIndicator color={variant === 'ghost' ? theme.colors.deepPlum : theme.colors.white} />
+        {variant === 'ghost' ? (
+          <BlurView intensity={60} style={styles.blurContent} tint="light">
+            <View style={styles.content}>
+              {loading ? (
+                <ActivityIndicator color={theme.colors.deepPlum} />
+              ) : (
+                <Text style={[styles.text, styles.ghostText]}>
+                  {title}
+                </Text>
+              )}
+            </View>
+          </BlurView>
         ) : (
-          <Text
-            style={[
-              styles.text,
-              variant === 'primary' && styles.primaryText,
-              variant === 'secondary' && styles.secondaryText,
-              variant === 'ghost' && styles.ghostText,
-            ]}
-          >
-            {title}
-          </Text>
+          <View style={styles.content}>
+            {loading ? (
+              <ActivityIndicator color={theme.colors.white} />
+            ) : (
+              <Text
+                style={[
+                  styles.text,
+                  variant === 'primary' && styles.primaryText,
+                  variant === 'secondary' && styles.secondaryText,
+                ]}
+              >
+                {title}
+              </Text>
+            )}
+          </View>
         )}
       </TouchableOpacity>
     </Animated.View>
@@ -79,6 +123,24 @@ export function PrimaryButton({
 }
 
 const styles = StyleSheet.create({
+  container: {
+    borderRadius: theme.borderRadius.round,
+    shadowColor: theme.colors.deepPlum,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
+  },
+  borderGradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: theme.borderRadius.round,
+    borderWidth: 1,
+    borderColor: 'transparent',
+  },
   button: {
     paddingVertical: theme.spacing.md,
     paddingHorizontal: theme.spacing.xl,
@@ -86,6 +148,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     minHeight: 56,
+    overflow: 'hidden',
   },
   primary: {
     backgroundColor: theme.colors.deepPlum,
@@ -94,12 +157,22 @@ const styles = StyleSheet.create({
     backgroundColor: theme.colors.softMauve,
   },
   ghost: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: theme.colors.deepPlum,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.4)',
   },
   disabled: {
     opacity: 0.5,
+  },
+  blurContent: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  content: {
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   text: {
     fontSize: theme.fontSize.md,

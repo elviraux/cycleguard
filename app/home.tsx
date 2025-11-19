@@ -9,11 +9,11 @@ import {
   TextInput,
   Platform,
 } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { theme } from '@/constants/theme';
 import { GlassCard } from '@/components/GlassCard';
 import { PrimaryButton } from '@/components/PrimaryButton';
+import { LiquidBackground } from '@/components/LiquidBackground';
 import { Calendar } from '@/components/Calendar';
 import { storage } from '@/utils/storage';
 import { cycleCalculations } from '@/utils/cycleCalculations';
@@ -109,12 +109,8 @@ export default function HomeScreen() {
   const loggedPeriodDates = userData.periodDays.map(pd => pd.date);
 
   return (
-    <LinearGradient
-      colors={theme.gradients.background}
-      style={styles.container}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }}
-    >
+    <View style={styles.container}>
+      <LiquidBackground />
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Cycle Overview</Text>
@@ -210,7 +206,7 @@ export default function HomeScreen() {
           </View>
         </View>
       </Modal>
-    </LinearGradient>
+    </View>
   );
 }
 
@@ -266,16 +262,26 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: 'rgba(107, 76, 107, 0.4)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   modalContent: {
-    backgroundColor: theme.colors.cream,
-    borderRadius: theme.borderRadius.lg,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: theme.borderRadius.xl,
     padding: theme.spacing.xl,
     width: '85%',
     maxWidth: 400,
+    borderWidth: 1.5,
+    borderColor: 'rgba(255, 255, 255, 0.5)',
+    shadowColor: theme.colors.deepPlum,
+    shadowOffset: {
+      width: 0,
+      height: 12,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 24,
+    elevation: 16,
   },
   modalTitle: {
     fontSize: theme.fontSize.xl,
@@ -291,14 +297,16 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   modalInput: {
-    backgroundColor: 'rgba(255, 255, 255, 0.5)',
-    borderRadius: theme.borderRadius.md,
+    backgroundColor: 'rgba(255, 255, 255, 0.6)',
+    borderRadius: theme.borderRadius.lg,
     padding: theme.spacing.md,
     fontSize: theme.fontSize.md,
     color: theme.colors.text.primary,
     minHeight: 100,
     textAlignVertical: 'top',
     marginBottom: theme.spacing.lg,
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.8)',
   },
   modalButtons: {
     gap: theme.spacing.md,
