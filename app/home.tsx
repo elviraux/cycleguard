@@ -1,0 +1,309 @@
+import React, { useState, useEffect } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+  Platform,
+} from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
+import { theme } from '@/constants/theme';
+import { GlassCard } from '@/components/GlassCard';
+import { PrimaryButton } from '@/components/PrimaryButton';
+import { Calendar } from '@/components/Calendar';
+import { storage } from '@/utils/storage';
+import { cycleCalculations } from '@/utils/cycleCalculations';
+import { UserData } from '@/types/cycle';
+import Svg, { Path } from 'react-native-svg';
+
+export default function HomeScreen() {
+  const router = useRouter();
+  const [userData, setUserData] = useState<UserData | null>(null);
+  const [currentMonth, setCurrentMonth] = useState(new Date().getMonth());
+  const [currentYear, setCurrentYear] = useState(new Date().getFullYear());
+  const [showSymptomModal, setShowSymptomModal] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [symptomNotes, setSymptomNotes] = useState('');
+
+  useEffect(() => {
+    loadUserData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const loadUserData = async () => {
+    const data = await storage.getUserData();
+    setUserData(data);
+
+    if (!data.hasCompletedOnboarding) {
+      router.replace('/onboarding');
+    }
+  };
+
+  const handleDatePress = async (date: string) => {
+    const isLogged = userData?.periodDays.some(pd => pd.date === date);
+
+    if (isLogged) {
+      await storage.removePeriodDay(date);
+    } else {
+      await storage.addPeriodDay(date);
+    }
+
+    loadUserData();
+  };
+
+  const handlePreviousMonth = () => {
+    if (currentMonth === 0) {
+      setCurrentMonth(11);
+      setCurrentYear(currentYear - 1);
+    } else {
+      setCurrentMonth(currentMonth - 1);
+    }
+  };
+
+  const handleNextMonth = () => {
+    if (currentMonth === 11) {
+      setCurrentMonth(0);
+      setCurrentYear(currentYear + 1);
+    } else {
+      setCurrentMonth(currentMonth + 1);
+    }
+  };
+
+  const handleLogSymptoms = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setSelectedDate(today);
+    setShowSymptomModal(true);
+  };
+
+  const handleSaveSymptoms = async () => {
+    if (selectedDate) {
+      await storage.saveSymptomLog({
+        date: selectedDate,
+        symptoms: [],
+        notes: symptomNotes,
+      });
+      setShowSymptomModal(false);
+      setSymptomNotes('');
+      loadUserData();
+    }
+  };
+
+  if (!userData || !userData.cycleData) {
+    return null;
+  }
+
+  const today = new Date();
+  const todayString = today.toISOString().split('T')[0];
+  const nextPeriod = cycleCalculations.calculateNextPeriod(userData.cycleData);
+
+  const { periodDates, fertileDates } = cycleCalculations.getPredictedDatesForMonth(
+    userData.cycleData,
+    currentYear,
+    currentMonth
+  );
+
+  const loggedPeriodDates = userData.periodDays.map(pd => pd.date);
+
+  return (
+    <LinearGradient
+      colors={theme.gradients.background}
+      style={styles.container}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 0, y: 1 }}
+    >
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Cycle Overview</Text>
+        </View>
+
+        {/* Month navigation */}
+        <View style={styles.monthNav}>
+          <TouchableOpacity onPress={handlePreviousMonth} style={styles.navButton}>
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <Path d="M15 18L9 12L15 6" stroke={theme.colors.deepPlum} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
+          <Text style={styles.monthText}>
+            {cycleCalculations.formatMonthYear(currentYear, currentMonth)}
+          </Text>
+          <TouchableOpacity onPress={handleNextMonth} style={styles.navButton}>
+            <Svg width={24} height={24} viewBox="0 0 24 24" fill="none">
+              <Path d="M9 18L15 12L9 6" stroke={theme.colors.deepPlum} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+            </Svg>
+          </TouchableOpacity>
+        </View>
+
+        {/* Calendar */}
+        <GlassCard style={styles.calendarCard}>
+          <Calendar
+            year={currentYear}
+            month={currentMonth}
+            periodDates={periodDates}
+            fertileDates={fertileDates}
+            loggedPeriodDates={loggedPeriodDates}
+            currentDate={todayString}
+            onDatePress={handleDatePress}
+          />
+        </GlassCard>
+
+        {/* Info cards */}
+        <View style={styles.infoCards}>
+          <GlassCard style={styles.infoCard}>
+            <Text style={styles.infoCardText}>
+              Today is {cycleCalculations.formatDate(today)}
+            </Text>
+          </GlassCard>
+
+          <PrimaryButton
+            title="Log Symptoms"
+            onPress={handleLogSymptoms}
+            style={styles.logButton}
+          />
+
+          <GlassCard style={styles.infoCard}>
+            <Text style={styles.infoCardText}>
+              Next Period Due: {cycleCalculations.formatDate(nextPeriod)}
+            </Text>
+          </GlassCard>
+        </View>
+      </ScrollView>
+
+      {/* Symptom Modal */}
+      <Modal
+        visible={showSymptomModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowSymptomModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Log Symptoms</Text>
+            <Text style={styles.modalDate}>{selectedDate}</Text>
+
+            <TextInput
+              style={styles.modalInput}
+              placeholder="Add notes about symptoms, mood, etc."
+              placeholderTextColor={theme.colors.text.light}
+              value={symptomNotes}
+              onChangeText={setSymptomNotes}
+              multiline
+              numberOfLines={4}
+            />
+
+            <View style={styles.modalButtons}>
+              <PrimaryButton
+                title="Save"
+                onPress={handleSaveSymptoms}
+                style={styles.modalButton}
+              />
+              <PrimaryButton
+                title="Cancel"
+                onPress={() => setShowSymptomModal(false)}
+                variant="ghost"
+                style={styles.modalButton}
+              />
+            </View>
+          </View>
+        </View>
+      </Modal>
+    </LinearGradient>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: Platform.OS === 'ios' ? 60 : 40,
+    paddingHorizontal: theme.spacing.lg,
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  headerTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
+  },
+  monthNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  navButton: {
+    padding: theme.spacing.sm,
+  },
+  monthText: {
+    fontSize: theme.fontSize.lg,
+    fontWeight: theme.fontWeight.semibold,
+    color: theme.colors.text.primary,
+  },
+  calendarCard: {
+    marginBottom: theme.spacing.lg,
+  },
+  infoCards: {
+    gap: theme.spacing.md,
+  },
+  infoCard: {
+    padding: theme.spacing.lg,
+  },
+  infoCardText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text.primary,
+    textAlign: 'center',
+  },
+  logButton: {
+    marginVertical: theme.spacing.sm,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: theme.colors.cream,
+    borderRadius: theme.borderRadius.lg,
+    padding: theme.spacing.xl,
+    width: '85%',
+    maxWidth: 400,
+  },
+  modalTitle: {
+    fontSize: theme.fontSize.xl,
+    fontWeight: theme.fontWeight.bold,
+    color: theme.colors.text.primary,
+    marginBottom: theme.spacing.sm,
+    textAlign: 'center',
+  },
+  modalDate: {
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.light,
+    marginBottom: theme.spacing.lg,
+    textAlign: 'center',
+  },
+  modalInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
+    borderRadius: theme.borderRadius.md,
+    padding: theme.spacing.md,
+    fontSize: theme.fontSize.md,
+    color: theme.colors.text.primary,
+    minHeight: 100,
+    textAlignVertical: 'top',
+    marginBottom: theme.spacing.lg,
+  },
+  modalButtons: {
+    gap: theme.spacing.md,
+  },
+  modalButton: {
+    width: '100%',
+  },
+});
