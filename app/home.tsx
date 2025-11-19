@@ -10,15 +10,16 @@ import {
   Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import Svg, { Path } from 'react-native-svg';
 import { theme } from '@/constants/theme';
 import { GlassCard } from '@/components/GlassCard';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LiquidBackground } from '@/components/LiquidBackground';
 import { Calendar } from '@/components/Calendar';
+import { GearIcon } from '@/components/icons/GearIcon';
 import { storage } from '@/utils/storage';
 import { cycleCalculations } from '@/utils/cycleCalculations';
 import { UserData } from '@/types/cycle';
-import Svg, { Path } from 'react-native-svg';
 
 export default function HomeScreen() {
   const router = useRouter();
@@ -114,6 +115,13 @@ export default function HomeScreen() {
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <View style={styles.header}>
           <Text style={styles.headerTitle}>Cycle Overview</Text>
+          <TouchableOpacity
+            style={styles.settingsButton}
+            onPress={() => router.push('/settings')}
+            activeOpacity={0.7}
+          >
+            <GearIcon size={28} color={theme.colors.deepPlum} />
+          </TouchableOpacity>
         </View>
 
         {/* Month navigation */}
@@ -220,13 +228,21 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   header: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: theme.spacing.lg,
+    position: 'relative',
   },
   headerTitle: {
     fontSize: theme.fontSize.xl,
     fontWeight: theme.fontWeight.bold,
     color: theme.colors.text.primary,
+  },
+  settingsButton: {
+    position: 'absolute',
+    right: 0,
+    padding: theme.spacing.sm,
   },
   monthNav: {
     flexDirection: 'row',
