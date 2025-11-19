@@ -117,6 +117,10 @@ export default function AboutScreen() {
           <Text style={styles.footer}>
             Made with care for your privacy • © 2025 Cycleguard
           </Text>
+          <Text style={styles.footer}>
+            The mobile app was built with Fastshot.
+            Fastshot - 
+          </Text>
         </GlassCard>
       </ScrollView>
     </View>

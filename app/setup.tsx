@@ -8,12 +8,12 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { useRouter } from 'expo-router';
 import { theme } from '@/constants/theme';
 import { GlassCard } from '@/components/GlassCard';
 import { PrimaryButton } from '@/components/PrimaryButton';
 import { LiquidBackground } from '@/components/LiquidBackground';
+import { DatePickerModal } from '@/components/DatePickerModal';
 import { storage } from '@/utils/storage';
 
 export default function SetupScreen() {
@@ -23,13 +23,13 @@ export default function SetupScreen() {
   const [periodLength, setPeriodLength] = useState('5');
   const [cycleLength, setCycleLength] = useState('28');
 
-  const handleDateChange = (event: any, selectedDate?: Date) => {
-    if (Platform.OS === 'android') {
-      setShowDatePicker(false);
-    }
-    if (selectedDate) {
-      setLastPeriodDate(selectedDate);
-    }
+  const handleDateConfirm = (selectedDate: Date) => {
+    setLastPeriodDate(selectedDate);
+    setShowDatePicker(false);
+  };
+
+  const handleDateCancel = () => {
+    setShowDatePicker(false);
   };
 
   const handleSave = async () => {
@@ -65,20 +65,11 @@ export default function SetupScreen() {
                 <TouchableOpacity
                   style={styles.dateButton}
                   onPress={() => setShowDatePicker(true)}
+                  activeOpacity={0.7}
                 >
                   <Text style={styles.dateText}>{formatDate(lastPeriodDate)}</Text>
                 </TouchableOpacity>
               </View>
-
-              {showDatePicker && (
-                <DateTimePicker
-                  value={lastPeriodDate}
-                  mode="date"
-                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-                  onChange={handleDateChange}
-                  maximumDate={new Date()}
-                />
-              )}
 
               {/* Period length */}
               <View style={styles.inputGroup}>
@@ -125,6 +116,15 @@ export default function SetupScreen() {
           />
         </View>
       </ScrollView>
+
+      {/* Date Picker Modal */}
+      <DatePickerModal
+        visible={showDatePicker}
+        date={lastPeriodDate}
+        onConfirm={handleDateConfirm}
+        onCancel={handleDateCancel}
+        maximumDate={new Date()}
+      />
     </View>
   );
 }
@@ -166,16 +166,25 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.sm,
   },
   dateButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
     padding: theme.spacing.md,
     borderRadius: theme.borderRadius.md,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: theme.colors.glassBorder,
+    shadowColor: theme.colors.deepPlum,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   dateText: {
     fontSize: theme.fontSize.md,
     color: theme.colors.text.primary,
-    fontWeight: theme.fontWeight.medium,
+    fontWeight: theme.fontWeight.semibold,
+    textAlign: 'center',
   },
   inputContainer: {
     flexDirection: 'row',

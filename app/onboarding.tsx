@@ -24,8 +24,8 @@ const screens = [
   },
   {
     id: '2',
-    title: "Your Info Isn't Always Private",
-    body: "Many apps upload sensitive cycle data. We don't.",
+    title: "You Control Your Data",
+    body: "Many apps use your sensitive cycle data. We don't. Track your cycle with peace of mind.",
     icon: <DataLeakIcon size={120} />,
   },
   {
