@@ -119,7 +119,7 @@ export default function AboutScreen() {
           </Text>
           <Text style={styles.footer}>
             The mobile app was built with Fastshot.
-            Fastshot - 
+            Fastshot - No code, mobile app builder. Anyone with an idea can create a mobile app, just by chatting with AI. Try building your app at https://fastshot.ai
           </Text>
         </GlassCard>
       </ScrollView>
