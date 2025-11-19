@@ -12,15 +12,16 @@ import {
 import { useRouter } from 'expo-router';
 import { theme } from '@/constants/theme';
 import { GlassCard } from '@/components/GlassCard';
-import { PrimaryButton } from '@/components/PrimaryButton';
 import { LiquidBackground } from '@/components/LiquidBackground';
 import { storage } from '@/utils/storage';
 import { exportToCSV } from '@/utils/csvExport';
+import { ConfirmationModal } from '@/components/ConfirmationModal';
 import Svg, { Path } from 'react-native-svg';
 
 export default function SettingsScreen() {
   const router = useRouter();
   const [isExporting, setIsExporting] = useState(false);
+  const [showResetModal, setShowResetModal] = useState(false);
   const slideAnim = useRef(new Animated.Value(600)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
@@ -77,6 +78,23 @@ export default function SettingsScreen() {
       );
     } finally {
       setIsExporting(false);
+    }
+  };
+
+  const handleResetConfirm = async () => {
+    try {
+      await storage.resetAllData();
+      setShowResetModal(false);
+
+      // Navigate to onboarding after reset
+      router.replace('/onboarding');
+    } catch (error) {
+      console.error('Reset error:', error);
+      Alert.alert(
+        'Reset Failed',
+        'There was an error resetting your data. Please try again.',
+        [{ text: 'OK' }]
+      );
     }
   };
 
@@ -149,45 +167,117 @@ export default function SettingsScreen() {
 
           {/* Content */}
           <View style={styles.content}>
-            <Text style={styles.title}>Manage Your Data</Text>
+            <Text style={styles.title}>Settings</Text>
 
-            <GlassCard style={styles.card}>
-              <View style={styles.cardContent}>
-                <Text style={styles.bodyText}>
-                  Your data belongs to you. Export a complete history of your cycle at any time.
+            {/* Data Management Section */}
+            <Text style={styles.sectionTitle}>Data Management</Text>
+            <GlassCard style={styles.groupCard}>
+              {/* Export to CSV */}
+              <TouchableOpacity
+                style={styles.settingsRow}
+                onPress={handleExport}
+                disabled={isExporting}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.settingsRowText}>
+                  {isExporting ? 'Exporting...' : 'Export to CSV'}
                 </Text>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M9 18L15 12L9 6"
+                    stroke={theme.colors.deepPlum}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
 
-                <View style={styles.exportInfo}>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>• Period days</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>• Symptoms & notes</Text>
-                  </View>
-                  <View style={styles.infoRow}>
-                    <Text style={styles.infoLabel}>• Complete history</Text>
-                  </View>
-                </View>
+              {/* Divider */}
+              <View style={styles.divider} />
 
-                <Text style={styles.formatText}>
-                  Data will be exported in CSV format, compatible with spreadsheets and other apps.
+              {/* Reset Application */}
+              <TouchableOpacity
+                style={styles.settingsRow}
+                onPress={() => setShowResetModal(true)}
+                activeOpacity={0.7}
+              >
+                <Text style={[styles.settingsRowText, styles.destructiveText]}>
+                  Reset Application
                 </Text>
-              </View>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M9 18L15 12L9 6"
+                    stroke="#DC2626"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
             </GlassCard>
 
-            <PrimaryButton
-              title="Export to CSV"
-              onPress={handleExport}
-              loading={isExporting}
-              style={styles.exportButton}
-            />
+            {/* Information Section */}
+            <Text style={styles.sectionTitle}>Information</Text>
+            <GlassCard style={styles.groupCard}>
+              {/* Privacy Policy */}
+              <TouchableOpacity
+                style={styles.settingsRow}
+                onPress={() => router.push('/privacy-policy')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.settingsRowText}>Privacy Policy</Text>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M9 18L15 12L9 6"
+                    stroke={theme.colors.deepPlum}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
+
+              {/* Divider */}
+              <View style={styles.divider} />
+
+              {/* About Cycleguard */}
+              <TouchableOpacity
+                style={styles.settingsRow}
+                onPress={() => router.push('/about')}
+                activeOpacity={0.7}
+              >
+                <Text style={styles.settingsRowText}>About Cycleguard</Text>
+                <Svg width={20} height={20} viewBox="0 0 24 24" fill="none">
+                  <Path
+                    d="M9 18L15 12L9 6"
+                    stroke={theme.colors.deepPlum}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </Svg>
+              </TouchableOpacity>
+            </GlassCard>
 
             <Text style={styles.footerText}>
-              Your exported data remains private and stored only on your device.
+              Your data is private and stored only on your device.
             </Text>
           </View>
         </ScrollView>
       </Animated.View>
+
+      {/* Reset Confirmation Modal */}
+      <ConfirmationModal
+        visible={showResetModal}
+        title="Are you sure?"
+        message="This will permanently delete all your cycle data and settings. This action cannot be undone."
+        confirmText="Reset"
+        cancelText="Cancel"
+        onConfirm={handleResetConfirm}
+        onCancel={() => setShowResetModal(false)}
+        destructive
+      />
     </View>
   );
 }
@@ -251,43 +341,47 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: theme.spacing.xl,
   },
-  card: {
-    marginBottom: theme.spacing.xl,
-  },
-  cardContent: {
-    padding: theme.spacing.lg,
-  },
-  bodyText: {
-    fontSize: theme.fontSize.md,
-    fontWeight: theme.fontWeight.regular,
-    color: theme.colors.text.primary,
-    lineHeight: 24,
-    marginBottom: theme.spacing.lg,
-  },
-  exportInfo: {
-    marginBottom: theme.spacing.lg,
-  },
-  infoRow: {
-    marginBottom: theme.spacing.sm,
-  },
-  infoLabel: {
-    fontSize: theme.fontSize.md,
-    color: theme.colors.text.secondary,
-    fontWeight: theme.fontWeight.medium,
-  },
-  formatText: {
+  sectionTitle: {
     fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.semibold,
     color: theme.colors.text.light,
-    lineHeight: 20,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: theme.spacing.sm,
     marginTop: theme.spacing.md,
+    paddingHorizontal: theme.spacing.xs,
   },
-  exportButton: {
-    marginBottom: theme.spacing.lg,
+  groupCard: {
+    marginBottom: theme.spacing.md,
+    overflow: 'hidden',
+  },
+  settingsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: theme.spacing.lg,
+    paddingHorizontal: theme.spacing.lg,
+    minHeight: 56,
+  },
+  settingsRowText: {
+    fontSize: theme.fontSize.md,
+    fontWeight: theme.fontWeight.medium,
+    color: theme.colors.text.primary,
+    flex: 1,
+  },
+  destructiveText: {
+    color: '#DC2626',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: 'rgba(107, 76, 107, 0.1)',
+    marginHorizontal: theme.spacing.lg,
   },
   footerText: {
     fontSize: theme.fontSize.sm,
     color: theme.colors.text.light,
     textAlign: 'center',
     lineHeight: 20,
+    marginTop: theme.spacing.xl,
   },
 });

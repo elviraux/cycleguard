@@ -67,4 +67,13 @@ export const storage = {
 
     await this.saveUserData(userData);
   },
+
+  async resetAllData(): Promise<void> {
+    try {
+      await AsyncStorage.removeItem(STORAGE_KEY);
+    } catch (error) {
+      console.error('Error resetting data:', error);
+      throw error;
+    }
+  },
 };
